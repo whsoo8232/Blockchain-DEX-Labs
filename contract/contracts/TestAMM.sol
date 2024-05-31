@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract LiquidityPool is ERC20, ReentrancyGuard, Ownable {
+contract TestAMM is ERC20, ReentrancyGuard, Ownable {
     IERC20 public token1;
     IERC20 public token2;
 
@@ -15,9 +15,11 @@ contract LiquidityPool is ERC20, ReentrancyGuard, Ownable {
 
     // Governance token distributed to liquidity providers
     IERC20 public governanceToken;
+    address public _governanceToken = 0xBafBe8Dc6b88868A7b58F6E5df89c3054dec93bB;
+    address public governanceOwner = 0x64a86158D40A628d626e6F6D4e707667048853eb;
 
-    constructor(address _token1, address _token2, address _governanceToken)
-        ERC20("LiquidityProviderToken", "LPT")
+    constructor(address _token1, address _token2)
+        ERC20("LiquidityProviderToken", "LPT")  Ownable(msg.sender)
     {
         token1 = IERC20(_token1);
         token2 = IERC20(_token2);
@@ -32,7 +34,7 @@ contract LiquidityPool is ERC20, ReentrancyGuard, Ownable {
         uint suppliedToken2 = _amount2;
 
         require(suppliedToken1 * balanceToken2 == suppliedToken2 * balanceToken1, "Invalid ratio");
-
+        
         token1.transferFrom(msg.sender, address(this), _amount1);
         token2.transferFrom(msg.sender, address(this), _amount2);
 
@@ -41,7 +43,7 @@ contract LiquidityPool is ERC20, ReentrancyGuard, Ownable {
         _mint(msg.sender, liquidity);
 
         // Reward the liquidity provider with governance tokens
-        governanceToken.transfer(msg.sender, liquidity);
+        governanceToken.transferFrom(governanceOwner, address(this), liquidity);
 
         reserve1 += _amount1;
         reserve2 += _amount2;
